@@ -24,14 +24,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-//mongoose.connect("mongodb://localhost:27017/userDB");
-mongoose.connect("mongodb://marikozza:1234@cluster0-shard-00-00.tmbxz.mongodb.net:27017,cluster0-shard-00-01.tmbxz.mongodb.net:27017,cluster0-shard-00-02.tmbxz.mongodb.net:27017/?ssl=true&replicaSet=atlas-j3731u-shard-0&authSource=admin&retryWrites=true&w=majority");
+mongoose.connect("mongodb://localhost:27017/userDB");
 
 const userSchema = new mongoose.Schema( {
     email: String,
     password: String,
     googleId: String,
-    secret: String
+    secret: Array
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -54,8 +53,7 @@ passport.deserializeUser(function(id, done){
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    //callbackURL: "http://localhost:3000/auth/google/secrets",
-    callbackURL: "https://rocky-tor-96905.herokuapp.com/auth/google/secrets",
+    callbackURL: "http://localhost:3000/auth/google/secrets",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   function(accessToken, refreshToken, profile, cb) {
@@ -107,20 +105,29 @@ app.get("/submit", function(req, res){
     }
 });
 
-app.post("/submit", function(req, res){
+app.post("/submit", function(req, res) {
     const submittedSecret = req.body.secret;
-    User.findById(req.user.id, function(err, foundUser){
+ 
+    User.findById(req.user._id, function(err, foundUser) {
         if (err) {
             console.log(err);
         } else {
+ 
             if (foundUser) {
-                foundUser.secret = submittedSecret;
-                foundUser.save(function(){
-                    res.redirect("/secrets");
-                })
+                User.updateOne(
+                    { _id: req.user._id },
+                    { $push: { secret: submittedSecret } },
+                    function(err, result) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.redirect("/secrets");
+                        }
+                    }
+                );
             }
         }
-    })
+    });
 });
 
 app.get("/logout", function(req, res){
