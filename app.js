@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema( {
     email: String,
     password: String,
     googleId: String,
-    secret: String
+    secret: Array
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -105,20 +105,29 @@ app.get("/submit", function(req, res){
     }
 });
 
-app.post("/submit", function(req, res){
+app.post("/submit", function(req, res) {
     const submittedSecret = req.body.secret;
-    User.findById(req.user.id, function(err, foundUser){
+ 
+    User.findById(req.user._id, function(err, foundUser) {
         if (err) {
             console.log(err);
         } else {
+ 
             if (foundUser) {
-                foundUser.secret = submittedSecret;
-                foundUser.save(function(){
-                    res.redirect("/secrets");
-                })
+                User.updateOne(
+                    { _id: req.user._id },
+                    { $push: { secret: submittedSecret } },
+                    function(err, result) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.redirect("/secrets");
+                        }
+                    }
+                );
             }
         }
-    })
+    });
 });
 
 app.get("/logout", function(req, res){
