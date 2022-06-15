@@ -1,7 +1,7 @@
 # Authentication and Security Project by create Keep-Secret Website.
 This secret project aim to apply Authentication methed and security at each level to create login webpage to keep your secret.
 
-<p> First: is to check Username and Password. </p>
+<p> First: Check Username and Password. </p>
 <p>Second: Encryption password with mongoose-encryption package. </p>
 <p>Third: Hashing Passwords with  md5. </p>
 <p>Fourth: Salting and Hashing Password with bcrypt. </p>
